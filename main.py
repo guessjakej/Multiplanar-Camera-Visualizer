@@ -27,7 +27,7 @@ def editor_mouseMoved(app, event):
 #################################################
 
 def main():
-    displayScale = 80
+    displayScale = 100
     w, h = 16*displayScale, 9*displayScale
 
     runApp(width=w, height=h) 
