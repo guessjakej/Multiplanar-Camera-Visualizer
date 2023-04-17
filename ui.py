@@ -15,6 +15,10 @@ Don't worry too much about the specifics of the calculations.
 
 ##############################################################################
 
+##########
+# EDITOR #
+##########
+
 # Manages Editor UI data and draws UI on canvas
 class EditorUI(object):
     def __init__(self, app):
@@ -33,6 +37,7 @@ class EditorUI(object):
         self.isEditorHover = False
         self.isProgrammerHover = False
         self.isPlaybackHover = False
+        self.isLayerAddHover = False
 
     # Called whenever the mouse position changes
     def updateMouse(self, mouseX, mouseY):
@@ -46,6 +51,7 @@ class EditorUI(object):
         self.isEditorHover = self.mouseInEditorButton(mouseX, mouseY)
         self.isProgrammerHover = self.mouseInProgrammerButton(mouseX, mouseY)
         self.isPlaybackHover = self.mouseInPlaybackButton(mouseX, mouseY)
+        self.isLayerAddHover = self.mouseInLayerButtons(mouseX, mouseY)
 
     def mouseInCursorButton(self, x, y):
         width = self.leftMenuMargin * (6/8)
@@ -136,6 +142,25 @@ class EditorUI(object):
         x1 = x0 + width
         y1 = y0 + height
         return x0 <= x and x <= x1 and y0 <= y and y <= y1
+    
+    def mouseInLayerButtons(self, x, y):
+        # Layer Visibility toggles
+        startX = self.app.width - self.rightMenuMargin*0.95
+        startY = 200
+        boxSize = 40
+        for layer in self.app.layers:
+            if (startX <= x and x <= startX + boxSize and
+                startY <= y and y <= startY + boxSize):
+                layer.visMouseHover = True
+            else:
+                layer.visMouseHover = False
+            
+            startY += 60
+
+        # Layer Add button
+        startY = 230 + 60*len(self.app.layers)
+        return (startX <= x and x <= startX + boxSize and
+                startY <= y and y <= startY + boxSize)
 
     def draw(self, canvas):
         # Main sections
@@ -155,6 +180,17 @@ class EditorUI(object):
         self.drawEditorButton(canvas)
         self.drawProgrammerButton(canvas)
         self.drawPlaybackButton(canvas)
+
+        # Draw current zoom
+        self.drawZoom(canvas)
+
+        # Right side menu
+        self.drawLayerHeader(canvas)
+        self.drawLayerList(canvas)
+        self.drawLayerAdd(canvas)
+
+        # Main View
+        self.drawMainView(canvas)
 
     def drawBackground(self, canvas):
         canvas.create_rectangle(0, 0, self.app.width, self.app.height,
@@ -411,3 +447,97 @@ class EditorUI(object):
         y2 = (y0 + y1)/2
         canvas.create_polygon(x0, y0, x1, y1, x2, y2, x0, y0,
                               fill="white", width=3, outline="black")
+        
+    def drawZoom(self, canvas):
+        width = self.app.width
+        height = self.app.height
+
+        # Draw magnifying glass
+        x, y = width * 0.6, height * 0.1
+        canvas.create_line(x,y,x+50,y-50,
+                           fill="black",width=8)
+        cX, cY = x+50, y-50
+        radius = 25
+        canvas.create_oval(cX-radius, cY-radius, cX+radius, cY+radius,
+                           fill="white",width=6,outline="black")
+        
+        # Draw Zoom
+        textX, textY = x+100, y+20
+        canvas.create_text(textX,textY,anchor="sw",font="Helvetica 50 bold",
+                           fill="#c0c0c0",
+                           text=f"{round(self.app.zoom*100)}%",
+                           )
+        
+    def drawLayerHeader(self, canvas):
+        x = self.app.width - (self.rightMenuMargin / 2)
+        y = 75
+        canvas.create_text(x,y,text="Layers",font="Helvetica 50 bold",
+                           fill="#c0c0c0")
+
+    def drawLayerList(self, canvas):
+        startX = self.app.width - self.rightMenuMargin*0.95
+        startY = 200
+        boxSize = 40
+        for i in range(len(self.app.layers)):
+            layer = self.app.layers[i]
+            # Draw Visibility Box
+            canvas.create_rectangle(startX, startY, 
+                                    startX+boxSize, startY+boxSize,
+                                    fill="white",outline="black",width=5)
+            
+            # Draw X in box if layer visible
+            if layer.isVisible:
+                canvas.create_line(startX+7, startY+7,
+                                   startX+boxSize-7, startY+boxSize-7,
+                                   fill="black",width=5)
+                canvas.create_line(startX+7, startY+boxSize-7,
+                                   startX+boxSize-7, startY+7,
+                                   fill="black",width=5)
+            
+            # Draw layer name text
+            canvas.create_text(startX+boxSize*1.3, startY+boxSize*0.5,
+                               text=f"{layer.layerName}",font="Helvetica 30 bold",
+                               anchor="w",fill="white")
+            
+            # Box the currently selected layer
+            if self.app.selectedLayer == i:
+                canvas.create_rectangle(startX-10, startY-10,
+                                        self.app.width-10, startY+boxSize+10,
+                                        fill=None,outline="white",width=5)
+            
+            startY += 60
+
+    def drawLayerAdd(self, canvas):
+        startX = self.app.width - self.rightMenuMargin*0.95
+        startY = 230 + 60*len(self.app.layers)
+        boxSize = 40
+
+        # Draw Button Box
+        bgColor = "#808080" if self.isLayerAddHover else "#b0b0b0" 
+        canvas.create_rectangle(startX, startY, 
+                                startX+boxSize, startY+boxSize,
+                                fill=bgColor,outline="black",width=5)
+        
+        # Draw + in box
+        canvas.create_line(startX+boxSize/2, startY+7,
+                            startX+boxSize/2, startY+boxSize-7,
+                            fill="black",width=5)
+        canvas.create_line(startX+7, startY+boxSize/2,
+                            startX+boxSize-7, startY+boxSize/2,
+                            fill="black",width=5)
+        
+        # Draw "Add Layer text"
+        canvas.create_text(startX+boxSize*1.3, startY+boxSize*0.5,
+                            text=f"Add Layer",font="Helvetica 30 bold",
+                            anchor="w",fill="#c0c0c0")
+
+#TODO: When distance of a layer changes, update layer list.
+# self.app.layers = sorted(self.app.layers, key=lambda l: l.layerName)
+
+    def drawMainView(self, canvas):
+        x = self.app.width * (2/16)
+        y = self.app.height * (2.5/16)
+        width = self.app.width*(10/16)
+        height = width*(9/16)
+        canvas.create_rectangle(x, y, x+width, y+height,
+                                fill="white",outline="black",width=5)
