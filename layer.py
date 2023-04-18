@@ -13,3 +13,8 @@ class Layer(object):
         self.dist = dist
         self.isVisible = isVisible
         self.visMouseHover = False
+        self.shapes = []
+
+class Shape(object):
+    def __init__(self):
+        pass

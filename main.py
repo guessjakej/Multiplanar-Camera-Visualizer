@@ -1,6 +1,7 @@
 from cmu_112_graphics import *
 import ui
 import layer
+import view
 
 #################################################
 # App
@@ -20,12 +21,14 @@ def appStarted(app):
     app.selectedLayer = 0
 
     app.editorUI = ui.EditorUI(app)
+    app.view = view.View(app)
 
 #################################################
 # Editor
 #################################################
 
 def editor_redrawAll(app, canvas):
+    app.view.drawMainView(canvas)
     app.editorUI.draw(canvas)
 
 def editor_mouseMoved(app, event):
@@ -33,6 +36,10 @@ def editor_mouseMoved(app, event):
 
 def editor_mousePressed(app, event):
     app.selectedLayer = (app.selectedLayer + 1) % 2 
+
+#################################################
+# Helper Functions
+#################################################
 
 #################################################
 # main         

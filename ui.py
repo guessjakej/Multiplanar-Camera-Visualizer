@@ -164,9 +164,8 @@ class EditorUI(object):
 
     def draw(self, canvas):
         # Main sections
-        self.drawBackground(canvas)
         self.drawDividers(canvas)
-
+        
         # Left menu draw options
         self.drawCursorButton(canvas)
         self.drawColorButton(canvas)
@@ -188,13 +187,6 @@ class EditorUI(object):
         self.drawLayerHeader(canvas)
         self.drawLayerList(canvas)
         self.drawLayerAdd(canvas)
-
-        # Main View
-        self.drawMainView(canvas)
-
-    def drawBackground(self, canvas):
-        canvas.create_rectangle(0, 0, self.app.width, self.app.height,
-                                fill="#606060", width=0)
 
     def drawDividers(self, canvas):
         width = self.app.width
@@ -533,11 +525,3 @@ class EditorUI(object):
 
 #TODO: When distance of a layer changes, update layer list.
 # self.app.layers = sorted(self.app.layers, key=lambda l: l.layerName)
-
-    def drawMainView(self, canvas):
-        x = self.app.width * (2/16)
-        y = self.app.height * (2.5/16)
-        width = self.app.width*(10/16)
-        height = width*(9/16)
-        canvas.create_rectangle(x, y, x+width, y+height,
-                                fill="white",outline="black",width=5)
