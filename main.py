@@ -19,7 +19,7 @@ def appStarted(app):
     app.heldKeys = set()
     app.choosingColor = False
     app.selectedColor = None
-    app.typedColor = ""
+    app.typedColor = "#"
 
     # List containing Layer objects
     app.layers = [layer.Layer(app, "Layer 1", x=0, y=0, dist=10, isVisible=True),
@@ -55,27 +55,26 @@ def editor_keyPressed(app, event):
     # Currently in color typing menu
     if app.choosingColor:
         # Confirm selection. Format accordingly.
-        if event.key == "Enter":
-            app.typedColor = app.typedColor.lower()
-            if (strIsHex(app.typedColor[0]) and app.typedColor[0] != "#"):
-                app.typedColor = "#" + app.typedColor
-
-            app.selectedColor = app.typedColor
-            app.typedColor = ""
-            app.choosingColor = False
+        if (event.key == "Enter"):
+            if (len(app.typedColor) == 7 and strIsHex(app.typedColor)):
+                app.selectedColor = app.typedColor
+                app.typedColor = "#"
+                app.choosingColor = False
+                app.editorUI.colorSelectHeader = "Type in Color #Hexcode:"
+            else:
+                app.editorUI.colorSelectHeader = "Invalid Format (Ex: #ff81EA)"
 
         # Remove last character
-        elif event.key == "Backspace":
+        elif (event.key == "Backspace" and len(app.typedColor) > 1):
             app.typedColor = app.typedColor[:len(app.typedColor)-1]
 
-        # Add key to selection. Format accordingly.
+        # Add key to selection.
         else:
-            newChar = event.key
-            if newChar == "Space":
-                newChar = " "
-            charLimit = 15
-            if (len(app.typedColor) <= charLimit):
-                app.typedColor += newChar
+            if event.key == "Space":
+                return
+            charLimit = 7
+            if (len(app.typedColor) < charLimit):
+                app.typedColor += event.key
 
     # Not in color selection menu. Add key to set of held keys
     else:
@@ -111,6 +110,7 @@ def editor_timerFired(app):
 
 # Takes a string and returns whether or not it's a hex number
 def strIsHex(s):
+    s = s.lower()
     valid = "#0123456789abcdef"
     for char in s:
         if char not in valid:

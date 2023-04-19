@@ -41,6 +41,9 @@ class EditorUI(object):
         self.isPlaybackHover = False
         self.isLayerAddHover = False
 
+        # Update color selection header text on invalid input
+        self.colorSelectHeader = "Type in Color #Hexcode:"
+
     def updateMousePressed(self, mouseX, mouseY):
         if self.isCursorHover:
             self.selectedTool = "Cursor"
@@ -602,7 +605,7 @@ class EditorUI(object):
         # "Color:" text
         canvas.create_text(viewX + viewWidth*0.1 + 25,
                            viewY + viewHeight*0.3 + 25,
-                           text="Color (Name or #Hexcode):",
+                           text=self.colorSelectHeader,
                            anchor = "nw", font="Helvetica 25 bold")
         
         # Text Box
