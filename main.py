@@ -15,11 +15,19 @@ def appStarted(app):
     # Current magnification of view
     app.zoom = 1
 
+    # Controls
+    app.heldKeys = set()
+    app.choosingColor = False
+    app.selectedColor = None
+    app.typedColor = ""
+
     # List containing Layer objects
     app.layers = [layer.Layer(app, "Layer 1", x=0, y=0, dist=10, isVisible=True),
                   layer.Layer(app, "Layer 2", x=0, y=0, dist=20, isVisible=True)]
     app.selectedLayer = 0
+    
 
+    # Display
     app.editorUI = ui.EditorUI(app)
     app.view = view.View(app)
 
@@ -31,37 +39,92 @@ def editor_redrawAll(app, canvas):
     app.view.drawMainView(canvas)
     app.editorUI.draw(canvas)
 
-def editor_mouseMoved(app, event):
-    app.editorUI.updateMouse(event.x, event.y)
-
 def editor_mousePressed(app, event):
-    pass
+    if app.choosingColor:
+        return
+    
+    app.editorUI.updateMousePressed(event.x, event.y)
+
+def editor_mouseMoved(app, event):
+    if app.choosingColor:
+        return
+    
+    app.editorUI.updateMouseMoved(event.x, event.y)
 
 def editor_keyPressed(app, event):
+    # Currently in color typing menu
+    if app.choosingColor:
+        # Confirm selection. Format accordingly.
+        if event.key == "Enter":
+            app.typedColor = app.typedColor.lower()
+            if (strIsHex(app.typedColor[0]) and app.typedColor[0] != "#"):
+                app.typedColor = "#" + app.typedColor
+
+            app.selectedColor = app.typedColor
+            app.typedColor = ""
+            app.choosingColor = False
+
+        # Remove last character
+        elif event.key == "Backspace":
+            app.typedColor = app.typedColor[:len(app.typedColor)-1]
+
+        # Add key to selection. Format accordingly.
+        else:
+            newChar = event.key
+            if newChar == "Space":
+                newChar = " "
+            charLimit = 15
+            if (len(app.typedColor) <= charLimit):
+                app.typedColor += newChar
+
+    # Not in color selection menu. Add key to set of held keys
+    else:
+        app.heldKeys.add(event.key)
+
+def editor_keyReleased(app, event):
+    if event.key in app.heldKeys:
+        app.heldKeys.remove(event.key)
+
+def editor_timerFired(app):
     dist = 30
-    if (event.key == "w"):
-        app.view.viewPos = (app.view.viewPos[0], app.view.viewPos[1]-dist)
-    elif (event.key == "a"):
-        app.view.viewPos = (app.view.viewPos[0]-dist, app.view.viewPos[1])
-    elif (event.key == "s"):
-        app.view.viewPos = (app.view.viewPos[0], app.view.viewPos[1]+dist)
-    elif (event.key == "d"):
-        app.view.viewPos = (app.view.viewPos[0]+dist, app.view.viewPos[1])
-    elif (event.key == "Up"):
-        app.view.cameraDepth += 1
-    elif (event.key == "Down"):
-        app.view.cameraDepth -= 1
+    for key in app.heldKeys:
+        if (key == "w"):
+            app.view.viewPos = (app.view.viewPos[0], app.view.viewPos[1]-dist)
+        elif (key == "a"):
+            app.view.viewPos = (app.view.viewPos[0]-dist, app.view.viewPos[1])
+        elif (key == "s"):
+            app.view.viewPos = (app.view.viewPos[0], app.view.viewPos[1]+dist)
+        elif (key == "d"):
+            app.view.viewPos = (app.view.viewPos[0]+dist, app.view.viewPos[1])
+        elif (key == "Up"):
+            app.view.cameraDepth += 1
+        elif (key == "Down"):
+            app.view.cameraDepth -= 1
+
+
+    
+    
 
 #################################################
 # Helper Functions
 #################################################
+
+# Takes a string and returns whether or not it's a hex number
+def strIsHex(s):
+    valid = "#0123456789abcdef"
+    for char in s:
+        if char not in valid:
+            return False
+        
+    return True
+
 
 #################################################
 # main         
 #################################################
 
 def main():
-    displayScale = 90
+    displayScale = 100
     w, h = 16*displayScale, 9*displayScale
 
     runApp(width=w, height=h) 

@@ -26,6 +26,8 @@ class EditorUI(object):
         self.leftMenuMargin = app.width * (1/16)
         self.rightMenuMargin = app.width * (3/16)
 
+        self.selectedTool = "Cursor"
+
         # Keep track of these for darkening menu buttons on hover
         self.isCursorHover = False
         self.isColorHover = False
@@ -39,8 +41,25 @@ class EditorUI(object):
         self.isPlaybackHover = False
         self.isLayerAddHover = False
 
+    def updateMousePressed(self, mouseX, mouseY):
+        if self.isCursorHover:
+            self.selectedTool = "Cursor"
+        elif self.isColorHover:
+            self.app.choosingColor = True
+        elif self.isLineHover:
+            self.selectedTool = "Line"
+        elif self.isCircleHover:
+            self.selectedTool = "Circle"
+        elif self.isTriangleHover:
+            self.selectedTool = "Triangle"
+        elif self.isSquareHover:
+            self.selectedTool = "Square"
+        elif self.isFreeformHover:
+            self.selectedTool = "Freeform"
+            
+
     # Called whenever the mouse position changes
-    def updateMouse(self, mouseX, mouseY):
+    def updateMouseMoved(self, mouseX, mouseY):
         self.isCursorHover = self.mouseInCursorButton(mouseX, mouseY)
         self.isColorHover = self.mouseInColorButton(mouseX, mouseY)
         self.isLineHover = self.mouseInLineButton(mouseX, mouseY)
@@ -188,6 +207,10 @@ class EditorUI(object):
         self.drawLayerList(canvas)
         self.drawLayerAdd(canvas)
 
+        # Color Selection Window
+        if self.app.choosingColor:
+            self.drawChooseColorWindow(canvas)
+
     def drawDividers(self, canvas):
         width = self.app.width
         height = self.app.height
@@ -215,7 +238,11 @@ class EditorUI(object):
         y = (self.leftMenuMargin - width)/2 * ((0*7)+1)
 
         # Background
-        bgColor = "#808080" if self.isCursorHover else "#b0b0b0" 
+        bgColor = None
+        if self.selectedTool == "Cursor":
+            bgColor = "white"
+        else:
+            bgColor = "#808080" if self.isCursorHover else "#b0b0b0" 
         canvas.create_rectangle(x, y, x + width, y + height, 
                                 fill=bgColor, width=3)
         
@@ -241,20 +268,35 @@ class EditorUI(object):
         canvas.create_rectangle(x, y, x + width, y + height, 
                                 fill=bgColor, width=3)
         
-        # 3 Colorful Circles
+        # 3 Colorful Circles (or all same color once color is picked)
         radius = width * (2/8)
-        # Red Circle
-        rX, rY = x + width * 0.5, y + height * 0.35
-        canvas.create_oval(rX - radius, rY - radius, rX + radius, rY + radius,
-                           fill=None,outline="#FF0000",width=6)
-        # Green Circle
-        gX, gY = x + width * 0.35, y + height * 0.65
-        canvas.create_oval(gX - radius, gY - radius, gX + radius, gY + radius,
-                           fill=None,outline="#00FF00",width=6)
-        # Blue Circle
-        bX, bY = x + width * 0.65, y + height * 0.65
-        canvas.create_oval(bX - radius, bY - radius, bX + radius, bY + radius,
-                           fill=None,outline="#0000FF",width=6)
+        if self.app.selectedColor == None:
+            # Red Circle
+            rX, rY = x + width * 0.5, y + height * 0.35
+            canvas.create_oval(rX - radius, rY - radius, rX + radius, rY + radius,
+                            fill=None,outline="#FF0000",width=6)
+            # Green Circle
+            gX, gY = x + width * 0.35, y + height * 0.65
+            canvas.create_oval(gX - radius, gY - radius, gX + radius, gY + radius,
+                            fill=None,outline="#00FF00",width=6)
+            # Blue Circle
+            bX, bY = x + width * 0.65, y + height * 0.65
+            canvas.create_oval(bX - radius, bY - radius, bX + radius, bY + radius,
+                            fill=None,outline="#0000FF",width=6)
+        else:
+            col = self.app.selectedColor
+            # Top Circle
+            rX, rY = x + width * 0.5, y + height * 0.35
+            canvas.create_oval(rX - radius, rY - radius, rX + radius, rY + radius,
+                            fill=None,outline=col,width=6)
+            # Left Circle
+            gX, gY = x + width * 0.35, y + height * 0.65
+            canvas.create_oval(gX - radius, gY - radius, gX + radius, gY + radius,
+                            fill=None,outline=col,width=6)
+            # Right Circle
+            bX, bY = x + width * 0.65, y + height * 0.65
+            canvas.create_oval(bX - radius, bY - radius, bX + radius, bY + radius,
+                            fill=None,outline=col,width=6)
         
     def drawLineButton(self, canvas):
         width = self.leftMenuMargin * (6/8)
@@ -263,7 +305,11 @@ class EditorUI(object):
         y = (self.leftMenuMargin - width)/2 * ((2*7)+1)
 
         # Background
-        bgColor = "#808080" if self.isLineHover else "#b0b0b0" 
+        bgColor = None
+        if self.selectedTool == "Line":
+            bgColor = "white"
+        else:
+            bgColor = "#808080" if self.isLineHover else "#b0b0b0" 
         canvas.create_rectangle(x, y, x + width, y + height, 
                                 fill=bgColor, width=3)
         
@@ -279,7 +325,11 @@ class EditorUI(object):
         y = (self.leftMenuMargin - width)/2 * ((3*7)+1)
 
         # Background
-        bgColor = "#808080" if self.isCircleHover else "#b0b0b0" 
+        bgColor = None
+        if self.selectedTool == "Circle":
+            bgColor = "white"
+        else:
+            bgColor = "#808080" if self.isCircleHover else "#b0b0b0" 
         canvas.create_rectangle(x, y, x + width, y + height, 
                                 fill=bgColor, width=3)
         
@@ -297,7 +347,11 @@ class EditorUI(object):
         y = (self.leftMenuMargin - width)/2 * ((4*7)+1)
 
         # Background
-        bgColor = "#808080" if self.isTriangleHover else "#b0b0b0" 
+        bgColor = None
+        if self.selectedTool == "Triangle":
+            bgColor = "white"
+        else:
+            bgColor = "#808080" if self.isTriangleHover else "#b0b0b0" 
         canvas.create_rectangle(x, y, x + width, y + height, 
                                 fill=bgColor, width=3)
         
@@ -315,7 +369,11 @@ class EditorUI(object):
         y = (self.leftMenuMargin - width)/2 * ((5*7)+1)
 
         # Background
-        bgColor = "#808080" if self.isSquareHover else "#b0b0b0" 
+        bgColor = None
+        if self.selectedTool == "Square":
+            bgColor = "white"
+        else:
+            bgColor = "#808080" if self.isSquareHover else "#b0b0b0" 
         canvas.create_rectangle(x, y, x + width, y + height, 
                                 fill=bgColor, width=3)
         
@@ -331,7 +389,11 @@ class EditorUI(object):
         y = (self.leftMenuMargin - width)/2 * ((6*7)+1)
 
         # Background
-        bgColor = "#808080" if self.isFreeformHover else "#b0b0b0" 
+        bgColor = None
+        if self.selectedTool == "Freeform":
+            bgColor = "white"
+        else:
+            bgColor = "#808080" if self.isFreeformHover else "#b0b0b0" 
         canvas.create_rectangle(x, y, x + width, y + height, 
                                 fill=bgColor, width=3)
         
@@ -522,6 +584,40 @@ class EditorUI(object):
         canvas.create_text(startX+boxSize*1.3, startY+boxSize*0.5,
                             text=f"Add Layer",font="Helvetica 30 bold",
                             anchor="w",fill="#c0c0c0")
+        
+    def drawChooseColorWindow(self, canvas):
+        viewX = self.app.view.viewX
+        viewY = self.app.view.viewY
+        viewWidth = self.app.view.viewWidth
+        viewHeight = self.app.view.viewHeight
+        
+        # Background
+        canvas.create_rectangle(viewX + viewWidth*0.1,
+                                viewY + viewHeight*0.3,
+                                viewX + viewWidth*0.9,
+                                viewY + viewHeight*0.7,
+                                fill="#3489eb",outline="black",
+                                width=10)
+        
+        # "Color:" text
+        canvas.create_text(viewX + viewWidth*0.1 + 25,
+                           viewY + viewHeight*0.3 + 25,
+                           text="Color (Name or #Hexcode):",
+                           anchor = "nw", font="Helvetica 25 bold")
+        
+        # Text Box
+        canvas.create_rectangle(viewX + viewWidth*0.1 + 25,
+                                viewY + viewHeight*0.45 ,
+                                viewX + viewWidth*0.8,
+                                viewY + viewHeight*0.65,
+                                fill="white",outline="black",
+                                width=6)
+        
+        canvas.create_text(viewX + viewWidth*0.1 + 50,
+                           viewY + viewHeight*0.55,
+                           anchor="w",font="Helvetica 50 bold",
+                           text=self.app.typedColor)
+        
 
 #TODO: When distance of a layer changes, update layer list.
 # self.app.layers = sorted(self.app.layers, key=lambda l: l.layerName)

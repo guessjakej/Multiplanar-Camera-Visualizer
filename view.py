@@ -1,7 +1,6 @@
 '''
 Brief:
 This file provides routines for building and managing the viewing window
-
 '''
 
 #############################################################################
@@ -15,7 +14,8 @@ class View(object):
         self.viewY = self.app.height * (2.5/16)
         self.viewWidth = self.app.width*(10/16)
         self.viewHeight = self.viewWidth*(9/16)
-        self.viewDistance = 10
+        self.viewDistance = 10 
+        self.bgColor = "white"
 
     def drawMainView(self, canvas):
         x = self.app.view.viewX
@@ -23,8 +23,12 @@ class View(object):
         width = self.app.view.viewWidth
         height = self.app.view.viewHeight
 
+        # Draw background
+        canvas.create_rectangle(0, 0, self.app.width, self.app.height,
+                                fill=self.bgColor,width=0)
+
         # Draw each layer
-        for layer in self.app.layers:
+        for layer in self.app.layers[::-1]: # Draw furthest back first
             layer.drawLayer(canvas)
 
         # Background of UI (with hole in middle for view)
@@ -40,8 +44,6 @@ class View(object):
         # Border of view
         canvas.create_rectangle(x, y, x+width, y+height,
                                 fill=None,outline="black",width=5)
-        
-        
 
     # Converts raw canvas position to position in layer at given distance
     def canvasToLayerPos(self, x, y, dist):
