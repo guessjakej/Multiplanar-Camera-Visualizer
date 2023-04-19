@@ -10,6 +10,7 @@ class View(object):
     def __init__(self, app):
         self.app = app
         self.viewPos = (0,0)
+        self.cameraDepth = 0
         self.viewX = self.app.width * (2/16)
         self.viewY = self.app.height * (2.5/16)
         self.viewWidth = self.app.width*(10/16)
@@ -21,6 +22,10 @@ class View(object):
         y = self.app.view.viewY
         width = self.app.view.viewWidth
         height = self.app.view.viewHeight
+
+        # Draw each layer
+        for layer in self.app.layers:
+            layer.drawLayer(canvas)
 
         # Background of UI (with hole in middle for view)
         canvas.create_rectangle(0, 0, self.app.width, y,
@@ -35,6 +40,8 @@ class View(object):
         # Border of view
         canvas.create_rectangle(x, y, x+width, y+height,
                                 fill=None,outline="black",width=5)
+        
+        
 
     # Converts raw canvas position to position in layer at given distance
     def canvasToLayerPos(self, x, y, dist):

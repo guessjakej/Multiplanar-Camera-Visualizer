@@ -17,7 +17,7 @@ def appStarted(app):
 
     # List containing Layer objects
     app.layers = [layer.Layer(app, "Layer 1", x=0, y=0, dist=10, isVisible=True),
-                  layer.Layer(app, "Layer 2", x=0, y=0, dist=15, isVisible=False)]
+                  layer.Layer(app, "Layer 2", x=0, y=0, dist=20, isVisible=True)]
     app.selectedLayer = 0
 
     app.editorUI = ui.EditorUI(app)
@@ -36,6 +36,21 @@ def editor_mouseMoved(app, event):
 
 def editor_mousePressed(app, event):
     pass
+
+def editor_keyPressed(app, event):
+    dist = 30
+    if (event.key == "w"):
+        app.view.viewPos = (app.view.viewPos[0], app.view.viewPos[1]-dist)
+    elif (event.key == "a"):
+        app.view.viewPos = (app.view.viewPos[0]-dist, app.view.viewPos[1])
+    elif (event.key == "s"):
+        app.view.viewPos = (app.view.viewPos[0], app.view.viewPos[1]+dist)
+    elif (event.key == "d"):
+        app.view.viewPos = (app.view.viewPos[0]+dist, app.view.viewPos[1])
+    elif (event.key == "Up"):
+        app.view.cameraDepth += 1
+    elif (event.key == "Down"):
+        app.view.cameraDepth -= 1
 
 #################################################
 # Helper Functions
