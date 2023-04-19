@@ -14,7 +14,6 @@ class View(object):
         self.viewY = self.app.height * (2.5/16)
         self.viewWidth = self.app.width*(10/16)
         self.viewHeight = self.viewWidth*(9/16)
-        self.fov = 90
         self.viewDistance = 10
 
     def drawMainView(self, canvas):
@@ -38,48 +37,48 @@ class View(object):
                                 fill=None,outline="black",width=5)
 
     # Converts raw canvas position to position in layer at given distance
-    def canvasToLayerPos(self, app, x, y, dist):
-        viewX, viewY = self.canvasToView(app, x, y)
-        return self.viewToLayerPos(app, viewX, viewY, dist)
+    def canvasToLayerPos(self, x, y, dist):
+        viewX, viewY = self.canvasToView(x, y)
+        return self.viewToLayerPos(viewX, viewY, dist)
 
     # Converts raw canvas position to adjusted position in view
     # (Aspect ratio app.width X app.height)
-    def canvasToView(self, app, x, y):
-        viewX = ((x - self.viewX)/self.viewWidth)*app.width
-        viewY = ((y - self.viewY)/self.viewHeight)*app.height
+    def canvasToView(self, x, y):
+        viewX = ((x - self.viewX)/self.viewWidth)*self.app.width
+        viewY = ((y - self.viewY)/self.viewHeight)*self.app.height
         return viewX, viewY
 
     # Converts view position to position on layer given a distance
-    def viewToLayerPos(self, app, viewX, viewY, dist):
+    def viewToLayerPos(self, viewX, viewY, dist):
         centerX, centerY = self.viewPos
         viewDistance = self.viewDistance
 
         # Speed scaling at dist compared to viewDist
         parallaxFactor = viewDistance/dist 
 
-        layerX = (viewX - self.viewWidth/2)*(1/parallaxFactor) + centerX
-        layerY = (viewY - self.viewHeight/2)*(1/parallaxFactor) + centerY
+        layerX = (viewX - self.app.width/2)*(1/parallaxFactor) + centerX
+        layerY = (viewY - self.app.height/2)*(1/parallaxFactor) + centerY
         return layerX, layerY
 
     # Converts position in layer at given distance to raw canvas position
-    def layerPosToCanvas(self, app, layerX, layerY, dist):
-        viewX, viewY = self.layerPosToView(app, layerX, layerY, dist)
-        return self.viewToCanvas(app, viewX, viewY)
+    def layerPosToCanvas(self, layerX, layerY, dist):
+        viewX, viewY = self.layerPosToView(layerX, layerY, dist)
+        return self.viewToCanvas(viewX, viewY)
 
     # Converts position on layer at given distance to view position
-    def layerPosToView(self, app, layerX, layerY, dist):
+    def layerPosToView(self, layerX, layerY, dist):
         centerX, centerY = self.viewPos
         viewDistance = self.viewDistance
 
         # Speed scaling at dist compared to viewDist
         parallaxFactor = viewDistance/dist 
 
-        viewX = parallaxFactor*(layerX - centerX) + (app.editor.viewWidth/2)
-        viewY = parallaxFactor*(layerY - centerY) + (app.editor.viewHeight/2)
+        viewX = parallaxFactor*(layerX - centerX) + (self.app.width/2)
+        viewY = parallaxFactor*(layerY - centerY) + (self.app.height/2)
         return viewX, viewY
 
     # Converts adjusted view position to raw canvas position
-    def viewToCanvas(self, app, vX, vY):
-        x = vX * (self.viewWidth/app.width) + app.editor.viewX
-        y = vY * (self.viewHeight/app.height) + app.editor.viewY
+    def viewToCanvas(self, vX, vY):
+        x = vX * (self.viewWidth/self.app.width) + self.viewX
+        y = vY * (self.viewHeight/self.app.height) + self.viewY
         return x, y

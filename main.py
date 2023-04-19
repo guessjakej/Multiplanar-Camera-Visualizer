@@ -35,7 +35,7 @@ def editor_mouseMoved(app, event):
     app.editorUI.updateMouse(event.x, event.y)
 
 def editor_mousePressed(app, event):
-    app.selectedLayer = (app.selectedLayer + 1) % 2 
+    pass
 
 #################################################
 # Helper Functions
@@ -46,7 +46,7 @@ def editor_mousePressed(app, event):
 #################################################
 
 def main():
-    displayScale = 100
+    displayScale = 90
     w, h = 16*displayScale, 9*displayScale
 
     runApp(width=w, height=h) 
