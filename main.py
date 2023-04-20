@@ -23,7 +23,8 @@ def appStarted(app):
 
     # List containing Layer objects
     app.layers = [layer.Layer(app, "Layer 1", x=0, y=0, dist=10, isVisible=True),
-                  layer.Layer(app, "Layer 2", x=0, y=0, dist=20, isVisible=True)]
+                  layer.Layer(app, "Layer 2", x=0, y=0, dist=30, isVisible=True),
+                  layer.Layer(app, "Layer 3", x=0, y=0, dist=50, isVisible=True)]
     app.selectedLayer = 0
     
 
@@ -52,10 +53,11 @@ def editor_mouseMoved(app, event):
     app.editorUI.updateMouseMoved(event.x, event.y)
 
 def editor_keyPressed(app, event):
+    print(event.key)
     # Currently in color typing menu
     if app.choosingColor:
         # Confirm selection. Format accordingly.
-        if (event.key == "Enter"):
+        if (event.key == "Enter" or event.key == "Return"):
             if (len(app.typedColor) == 7 and strIsHex(app.typedColor)):
                 app.selectedColor = app.typedColor
                 app.typedColor = "#"
@@ -65,8 +67,9 @@ def editor_keyPressed(app, event):
                 app.editorUI.colorSelectHeader = "Invalid Format (Ex: #ff81EA)"
 
         # Remove last character
-        elif (event.key == "Backspace" and len(app.typedColor) > 1):
-            app.typedColor = app.typedColor[:len(app.typedColor)-1]
+        elif (event.key.lower() == "backspace"):
+            if (len(app.typedColor) > 1):
+                app.typedColor = app.typedColor[:len(app.typedColor)-1]
 
         # Add key to selection.
         else:
@@ -124,7 +127,7 @@ def strIsHex(s):
 #################################################
 
 def main():
-    displayScale = 100
+    displayScale = 80
     w, h = 16*displayScale, 9*displayScale
 
     runApp(width=w, height=h) 
