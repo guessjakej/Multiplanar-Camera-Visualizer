@@ -59,6 +59,8 @@ class EditorUI(object):
             self.selectedTool = "Square"
         elif self.isFreeformHover:
             self.selectedTool = "Freeform"
+        else:
+            self.updateSelectedLayer(mouseX, mouseY)
             
 
     # Called whenever the mouse position changes
@@ -168,7 +170,7 @@ class EditorUI(object):
     def mouseInLayerButtons(self, x, y):
         # Layer Visibility toggles
         startX = self.app.width - self.rightMenuMargin*0.95
-        startY = 200
+        startY = 200 + 60 # Account for BG layer
         boxSize = 40
         for layer in self.app.layers:
             if (startX <= x and x <= startX + boxSize and
@@ -180,9 +182,38 @@ class EditorUI(object):
             startY += 60
 
         # Layer Add button
-        startY = 230 + 60*len(self.app.layers)
+        startY = 230 + 60*(len(self.app.layers)+1)
         return (startX <= x and x <= startX + boxSize and
                 startY <= y and y <= startY + boxSize)
+    
+    def updateMousePressedColor(self, x, y):
+        viewX = self.app.view.viewX
+        viewY = self.app.view.viewY
+        viewWidth = self.app.view.viewWidth
+        viewHeight = self.app.view.viewHeight
+        if (viewX + viewWidth*0.74 <= x and 
+            x <= viewX + viewWidth*0.74 + (viewHeight*0.19) and
+            viewY + viewHeight*0.46 <= y and 
+            y <= viewY + viewHeight*0.65):
+            self.app.drawOutline = not self.app.drawOutline
+
+    def updateSelectedLayer(self, x, y):
+        startX = self.app.width - self.rightMenuMargin*0.95
+        startY = 200
+        boxSize = 40
+        for i in range(len(self.app.layers)+1):
+            if (i == 0):
+                if (startX-10 <= x and x <= self.app.width-10 and
+                    startY-10 <= y and y <= startY+boxSize+10):
+                    self.app.selectedLayer = i
+            else:
+                layer = self.app.layers[i-1]
+                if layer.visMouseHover:
+                    layer.isVisible = not layer.isVisible
+                elif (startX-10 <= x and x <= self.app.width-10 and
+                    startY-10 <= y and y <= startY+boxSize+10):
+                    self.app.selectedLayer = i
+            startY += 60
 
     def draw(self, canvas):
         # Main sections
@@ -535,26 +566,49 @@ class EditorUI(object):
         startX = self.app.width - self.rightMenuMargin*0.95
         startY = 200
         boxSize = 40
-        for i in range(len(self.app.layers)):
-            layer = self.app.layers[i]
-            # Draw Visibility Box
-            canvas.create_rectangle(startX, startY, 
-                                    startX+boxSize, startY+boxSize,
-                                    fill="white",outline="black",width=5)
-            
-            # Draw X in box if layer visible
-            if layer.isVisible:
+        for i in range(len(self.app.layers)+1):
+            if (i == 0):
+                # Background Layer
+
+                # Draw Visibility Box
+                canvas.create_rectangle(startX, startY, 
+                                        startX+boxSize, startY+boxSize,
+                                        fill="white",outline="black",width=5)
+                
+                # Draw X in box. BG always visible
                 canvas.create_line(startX+7, startY+7,
-                                   startX+boxSize-7, startY+boxSize-7,
-                                   fill="black",width=5)
+                                startX+boxSize-7, startY+boxSize-7,
+                                fill="black",width=5)
                 canvas.create_line(startX+7, startY+boxSize-7,
-                                   startX+boxSize-7, startY+7,
-                                   fill="black",width=5)
-            
-            # Draw layer name text
-            canvas.create_text(startX+boxSize*1.3, startY+boxSize*0.5,
-                               text=f"{layer.layerName}",font="Helvetica 30 bold",
-                               anchor="w",fill="white")
+                                startX+boxSize-7, startY+7,
+                                fill="black",width=5)
+                
+                # Draw layer name text
+                canvas.create_text(startX+boxSize*1.3, startY+boxSize*0.5,
+                                text="Background",font="Helvetica 25 bold",
+                                anchor="w",fill="white")
+            else:
+                # Regular Layer
+
+                layer = self.app.layers[i-1]
+                # Draw Visibility Box
+                canvas.create_rectangle(startX, startY, 
+                                        startX+boxSize, startY+boxSize,
+                                        fill="white",outline="black",width=5)
+                
+                # Draw X in box if layer visible
+                if layer.isVisible:
+                    canvas.create_line(startX+7, startY+7,
+                                    startX+boxSize-7, startY+boxSize-7,
+                                    fill="black",width=5)
+                    canvas.create_line(startX+7, startY+boxSize-7,
+                                    startX+boxSize-7, startY+7,
+                                    fill="black",width=5)
+                
+                # Draw layer name text
+                canvas.create_text(startX+boxSize*1.3, startY+boxSize*0.5,
+                                text=f"{layer.layerName}",font="Helvetica 25 bold",
+                                anchor="w",fill="white")
             
             # Box the currently selected layer
             if self.app.selectedLayer == i:
@@ -566,7 +620,7 @@ class EditorUI(object):
 
     def drawLayerAdd(self, canvas):
         startX = self.app.width - self.rightMenuMargin*0.95
-        startY = 230 + 60*len(self.app.layers)
+        startY = 230 + 60*(len(self.app.layers)+1)
         boxSize = 40
 
         # Draw Button Box
@@ -604,14 +658,14 @@ class EditorUI(object):
         
         # "Color:" text
         canvas.create_text(viewX + viewWidth*0.1 + 25,
-                           viewY + viewHeight*0.3 + 25,
+                           viewY + viewHeight*0.46 - 10,
                            text=self.colorSelectHeader,
-                           anchor = "nw", font="Helvetica 25 bold")
+                           anchor = "sw", font="Helvetica 25 bold")
         
         # Text Box
         canvas.create_rectangle(viewX + viewWidth*0.1 + 25,
-                                viewY + viewHeight*0.45 ,
-                                viewX + viewWidth*0.8,
+                                viewY + viewHeight*0.46 ,
+                                viewX + viewWidth*0.7,
                                 viewY + viewHeight*0.65,
                                 fill="white",outline="black",
                                 width=6)
@@ -620,6 +674,34 @@ class EditorUI(object):
                            viewY + viewHeight*0.55,
                            anchor="w",font="Helvetica 50 bold",
                            text=self.app.typedColor)
+        
+        # Outline check box
+        if not self.app.selectedLayer == 0:
+            # Box
+            canvas.create_rectangle(viewX + viewWidth*0.74,
+                                    viewY + viewHeight*0.46 ,
+                                    viewX + viewWidth*0.74 + (viewHeight*0.19),
+                                    viewY + viewHeight*0.65,
+                                    fill="white",outline="black",
+                                    width=6)
+            # Text
+            canvas.create_text(viewX + viewWidth*0.74 + (viewHeight*0.19)/2,
+                            viewY + viewHeight*0.46 - 10,
+                            text="Outline", anchor="s", font="Helvetica 20 bold")
+            
+            # X if selected
+            if (self.app.drawOutline):
+                canvas.create_line(viewX + viewWidth*0.74 + 15,
+                                viewY + viewHeight*0.46 + 15 ,
+                                viewX + viewWidth*0.74 + (viewHeight*0.19) - 15,
+                                viewY + viewHeight*0.65 - 15,
+                                fill="black",width=8)
+                canvas.create_line(viewX + viewWidth*0.74 + 15,
+                                viewY + viewHeight*0.65 - 15,
+                                viewX + viewWidth*0.74 + (viewHeight*0.19) - 15,
+                                viewY + viewHeight*0.46 + 15,
+                                fill="black",width=8)
+            
         
 
 #TODO: When distance of a layer changes, update layer list.

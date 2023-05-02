@@ -20,11 +20,12 @@ def appStarted(app):
     app.choosingColor = False
     app.selectedColor = None
     app.typedColor = "#"
+    app.drawOutline = False
 
     # List containing Layer objects
-    app.layers = [layer.Layer(app, "Layer 1", x=0, y=0, dist=10, isVisible=True),
+    app.layers = [layer.Layer(app, "Layer 1", x=0, y=0, dist=50, isVisible=True),
                   layer.Layer(app, "Layer 2", x=0, y=0, dist=30, isVisible=True),
-                  layer.Layer(app, "Layer 3", x=0, y=0, dist=50, isVisible=True)]
+                  layer.Layer(app, "Layer 3", x=0, y=0, dist=10, isVisible=True)]
     app.selectedLayer = 0
     
 
@@ -42,9 +43,9 @@ def editor_redrawAll(app, canvas):
 
 def editor_mousePressed(app, event):
     if app.choosingColor:
-        return
-    
-    app.editorUI.updateMousePressed(event.x, event.y)
+        app.editorUI.updateMousePressedColor(event.x, event.y)
+    else:
+        app.editorUI.updateMousePressed(event.x, event.y)
 
 def editor_mouseMoved(app, event):
     if app.choosingColor:
@@ -53,15 +54,18 @@ def editor_mouseMoved(app, event):
     app.editorUI.updateMouseMoved(event.x, event.y)
 
 def editor_keyPressed(app, event):
-    print(event.key)
     # Currently in color typing menu
     if app.choosingColor:
         # Confirm selection. Format accordingly.
         if (event.key == "Enter" or event.key == "Return"):
             if (len(app.typedColor) == 7 and strIsHex(app.typedColor)):
-                app.selectedColor = app.typedColor
-                app.typedColor = "#"
+                if app.selectedLayer == 0:
+                    app.view.bgColor = app.typedColor
+                else:
+                    app.selectedColor = app.typedColor
+
                 app.choosingColor = False
+                app.editorUI.isColorHover = False
                 app.editorUI.colorSelectHeader = "Type in Color #Hexcode:"
             else:
                 app.editorUI.colorSelectHeader = "Invalid Format (Ex: #ff81EA)"
@@ -70,6 +74,13 @@ def editor_keyPressed(app, event):
         elif (event.key.lower() == "backspace"):
             if (len(app.typedColor) > 1):
                 app.typedColor = app.typedColor[:len(app.typedColor)-1]
+
+        elif (event.key.lower() == "escape"):
+            if app.selectedColor != None:
+                app.typedColor = app.selectedColor
+            app.choosingColor = False
+            app.editorUI.isColorHover = False
+            app.editorUI.colorSelectHeader = "Type in Color #Hexcode:"
 
         # Add key to selection.
         else:
@@ -127,7 +138,7 @@ def strIsHex(s):
 #################################################
 
 def main():
-    displayScale = 80
+    displayScale = 100
     w, h = 16*displayScale, 9*displayScale
 
     runApp(width=w, height=h) 
