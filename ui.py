@@ -652,14 +652,14 @@ class EditorUI(object):
             else:
                 # Regular Layer
 
-                layer = self.app.layers[i-1]
+                currLayer = self.app.layers[i-1]
                 # Draw Visibility Box
                 canvas.create_rectangle(startX, startY, 
                                         startX+boxSize, startY+boxSize,
                                         fill="white",outline="black",width=5)
                 
                 # Draw X in box if layer visible
-                if layer.isVisible:
+                if currLayer.isVisible:
                     canvas.create_line(startX+7, startY+7,
                                     startX+boxSize-7, startY+boxSize-7,
                                     fill="black",width=5)
@@ -668,9 +668,11 @@ class EditorUI(object):
                                     fill="black",width=5)
                 
                 # Draw layer name text
+                layerDist = currLayer.dist - self.app.view.cameraDepth
+                textColor = "white" if (layerDist > 0) else "#808080"
                 canvas.create_text(startX+boxSize*1.3, startY+boxSize*0.5,
-                                text=f"{layer.layerName}",font="Helvetica 25 bold",
-                                anchor="w",fill="white")
+                                text=f"{currLayer.layerName}",font="Helvetica 25 bold",
+                                anchor="w",fill=textColor)
             
             # Box the currently selected layer
             if self.app.selectedLayer == i:

@@ -98,7 +98,7 @@ def editor_keyPressed(app, event):
                 app.typedColor += event.key
 
     # Undo
-    elif (event.key.lower() == "q" and app.selectedLayer > 0):
+    elif (event.key.lower() == "left" and app.selectedLayer > 0):
         currLayer = app.layers[app.selectedLayer-1]
         if len(currLayer.shapes) > 0:
             layerHistory = app.undoHistory.get(app.selectedLayer, [])
@@ -106,7 +106,7 @@ def editor_keyPressed(app, event):
             app.undoHistory[app.selectedLayer] = layerHistory
 
     # Redo
-    elif (event.key.lower() == "e" and app.selectedLayer > 0 and
+    elif (event.key.lower() == "right" and app.selectedLayer > 0 and
           len(app.undoHistory.get(app.selectedLayer, [])) > 0):
         currLayer = app.layers[app.selectedLayer-1]
         layerHistory = app.undoHistory.get(app.selectedLayer, [])
@@ -122,8 +122,10 @@ def editor_keyReleased(app, event):
         app.heldKeys.remove(event.key)
 
 def editor_timerFired(app):
-    dist = 30
+    dist = 30 # Amount to change distance by
+    depth = 1 # Amount to change depth by
     for key in app.heldKeys:
+        # Camera Controls
         if (key == "w"):
             app.view.viewPos = (app.view.viewPos[0], app.view.viewPos[1]-dist)
         elif (key == "a"):
@@ -132,14 +134,24 @@ def editor_timerFired(app):
             app.view.viewPos = (app.view.viewPos[0], app.view.viewPos[1]+dist)
         elif (key == "d"):
             app.view.viewPos = (app.view.viewPos[0]+dist, app.view.viewPos[1])
-        elif (key == "Up"):
-            app.view.cameraDepth += 1
-        elif (key == "Down"):
-            app.view.cameraDepth -= 1
+        elif (key == "e"):
+            app.view.cameraDepth += depth
+        elif (key == "q"):
+            app.view.cameraDepth -= depth
+
+        # Layer Controls
+        elif (key == "u"):
+            if (app.selectedLayer > 0):
+                app.layers[app.selectedLayer-1].dist -= depth
+                sortLayers(app)
+        elif (key == "o"):
+            if (app.selectedLayer > 0):
+                app.layers[app.selectedLayer-1].dist += depth
+                sortLayers(app)
 
 
-    
-    
+
+
 
 #################################################
 # Helper Functions
@@ -154,6 +166,23 @@ def strIsHex(s):
             return False
         
     return True
+
+# Put layers in reverse-distance order. Update app.selectedLayer
+# PRE: Layer list can be sorted with at most one swap
+def sortLayers(app):
+    index = 1
+    while (index < len(app.layers)):
+        currLayer = app.layers[index-1]
+        nextLayer = app.layers[index]
+        if (currLayer.dist < nextLayer.dist):
+            app.layers[index-1] = nextLayer
+            app.layers[index] = currLayer
+            if (app.selectedLayer == index):
+                app.selectedLayer += 1
+            elif (app.selectedLayer == index + 1):
+                app.selectedLayer -= 1
+            return
+        index += 1
 
 
 #################################################

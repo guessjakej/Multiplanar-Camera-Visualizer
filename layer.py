@@ -54,4 +54,6 @@ class Shape(object):
             v2 = ((newVertices[0][0] + newVertices[1][0]) / 2, 
                    newVertices[0][1])
             v3 = newVertices[1]
-            canvas.create_polygon(v1, v2, v3, fill=self.fillColor, width=width)
+            outline = "black" if self.showOutline else self.fillColor
+            canvas.create_polygon(v1, v2, v3, fill=self.fillColor, width=width,
+                                  outline=outline)
