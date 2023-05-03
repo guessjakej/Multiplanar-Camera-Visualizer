@@ -20,13 +20,14 @@ def appStarted(app):
     app.choosingColor = False
     app.selectedColor = None
     app.typedColor = "#"
-    app.drawOutline = False
+    app.drawOutline = True
 
     # List containing Layer objects
-    app.layers = [layer.Layer(app, "Layer 1", x=0, y=0, dist=50, isVisible=True),
-                  layer.Layer(app, "Layer 2", x=0, y=0, dist=30, isVisible=True),
-                  layer.Layer(app, "Layer 3", x=0, y=0, dist=10, isVisible=True)]
+    app.layers = [layer.Layer(app, "Layer 3", dist=50, isVisible=True),
+                  layer.Layer(app, "Layer 2", dist=30, isVisible=True),
+                  layer.Layer(app, "Layer 1", dist=10, isVisible=True)]
     app.selectedLayer = 0
+    app.undoHistory = dict()
     
 
     # Display
@@ -54,6 +55,12 @@ def editor_mouseMoved(app, event):
     app.editorUI.updateMouseMoved(event.x, event.y)
 
 def editor_keyPressed(app, event):
+    # Currently drawing a shape. Ignore inputs
+    if app.editorUI.drawingShape:
+        if event.key.lower() == "escape":
+            app.editorUI.drawingShape = False
+            app.layers[app.selectedLayer-1].shapes.pop()
+
     # Currently in color typing menu
     if app.choosingColor:
         # Confirm selection. Format accordingly.
@@ -90,6 +97,22 @@ def editor_keyPressed(app, event):
             if (len(app.typedColor) < charLimit):
                 app.typedColor += event.key
 
+    # Undo
+    elif (event.key.lower() == "q" and app.selectedLayer > 0):
+        currLayer = app.layers[app.selectedLayer-1]
+        if len(currLayer.shapes) > 0:
+            layerHistory = app.undoHistory.get(app.selectedLayer, [])
+            layerHistory.append(currLayer.shapes.pop())
+            app.undoHistory[app.selectedLayer] = layerHistory
+
+    # Redo
+    elif (event.key.lower() == "e" and app.selectedLayer > 0 and
+          len(app.undoHistory.get(app.selectedLayer, [])) > 0):
+        currLayer = app.layers[app.selectedLayer-1]
+        layerHistory = app.undoHistory.get(app.selectedLayer, [])
+        newShape = layerHistory.pop()
+        currLayer.shapes.append(newShape)
+    
     # Not in color selection menu. Add key to set of held keys
     else:
         app.heldKeys.add(event.key)

@@ -13,6 +13,9 @@ to be rescalable, much of the code in this file is difficult to understand.
 Don't worry too much about the specifics of the calculations.
 '''
 
+import layer
+import view
+
 ##############################################################################
 
 ##########
@@ -26,7 +29,9 @@ class EditorUI(object):
         self.leftMenuMargin = app.width * (1/16)
         self.rightMenuMargin = app.width * (3/16)
 
+        # Tool and variables for drawing new shapes
         self.selectedTool = "Cursor"
+        self.drawingShape = False
 
         # Keep track of these for darkening menu buttons on hover
         self.isCursorHover = False
@@ -59,7 +64,32 @@ class EditorUI(object):
             self.selectedTool = "Square"
         elif self.isFreeformHover:
             self.selectedTool = "Freeform"
+        elif self.isLayerAddHover:
+            self.addLayer()
+        elif self.mouseInView and self.app.selectedLayer > 0:
+            if self.selectedTool in ["Line", "Circle", "Triangle", "Square"]:
+                if (not self.drawingShape):
+                    currLayer = self.app.layers[self.app.selectedLayer-1]
+                    layerDist = currLayer.dist - self.app.view.cameraDepth
+                    if (layerDist > 0):
+                        self.drawingShape = True
+                        adjustedColor = self.app.selectedColor
+                        if adjustedColor == None:
+                            adjustedColor = "#000000"
+                        
+                        layerPos = self.app.view.canvasToLayerPos(mouseX, mouseY,
+                                                                layerDist)
+                        newShape = layer.Shape(self.selectedTool, 
+                                            [(layerPos),(layerPos)],
+                                            adjustedColor,
+                                            self.app.drawOutline)
+                        
+                        currLayer.shapes.append(newShape)
+                else:
+                    self.drawingShape = False
+                    self.app.undoHistory[self.app.selectedLayer] = []
         else:
+            self.drawingShape = False
             self.updateSelectedLayer(mouseX, mouseY)
             
 
@@ -76,6 +106,15 @@ class EditorUI(object):
         self.isProgrammerHover = self.mouseInProgrammerButton(mouseX, mouseY)
         self.isPlaybackHover = self.mouseInPlaybackButton(mouseX, mouseY)
         self.isLayerAddHover = self.mouseInLayerButtons(mouseX, mouseY)
+        self.mouseInView = self.mouseInViewWindow(mouseX, mouseY)
+        if self.drawingShape:
+            currLayer = self.app.layers[self.app.selectedLayer-1]
+            layerDist = currLayer.dist - self.app.view.cameraDepth
+            if (layerDist > 0):
+                layerPos = self.app.view.canvasToLayerPos(mouseX, mouseY, 
+                                                          layerDist)
+                currLayer = self.app.layers[self.app.selectedLayer-1]
+                currLayer.shapes[-1].vertices[-1] = (layerPos)
 
     def mouseInCursorButton(self, x, y):
         width = self.leftMenuMargin * (6/8)
@@ -183,8 +222,20 @@ class EditorUI(object):
 
         # Layer Add button
         startY = 230 + 60*(len(self.app.layers)+1)
+
+
         return (startX <= x and x <= startX + boxSize and
-                startY <= y and y <= startY + boxSize)
+                startY <= y and y <= startY + boxSize and
+                len(self.app.layers) < 8)
+    
+    def mouseInViewWindow(self, x, y):
+        view = self.app.view
+        viewX = view.viewX * (2/16)
+        viewY = view.viewY
+        viewWidth = view.viewWidth
+        viewHeight = view.viewHeight
+        return (viewX <= x and x <= viewX + viewWidth and
+                viewY <= y and y <= viewY + viewHeight)
     
     def updateMousePressedColor(self, x, y):
         viewX = self.app.view.viewX
@@ -215,6 +266,16 @@ class EditorUI(object):
                     self.app.selectedLayer = i
             startY += 60
 
+    def addLayer(self):
+        maxLayerDist = 0
+        for lyr in self.app.layers:
+            maxLayerDist = max(maxLayerDist, lyr.dist)
+        newLayer = layer.Layer(self.app, 
+                               layerName=f"Layer {len(self.app.layers)+1}",
+                               dist=maxLayerDist+10,
+                               isVisible=True)
+        self.app.layers = [newLayer] + self.app.layers
+
     def draw(self, canvas):
         # Main sections
         self.drawDividers(canvas)
@@ -239,7 +300,8 @@ class EditorUI(object):
         # Right side menu
         self.drawLayerHeader(canvas)
         self.drawLayerList(canvas)
-        self.drawLayerAdd(canvas)
+        if len(self.app.layers) < 8:
+            self.drawLayerAdd(canvas)
 
         # Color Selection Window
         if self.app.choosingColor:
@@ -701,8 +763,6 @@ class EditorUI(object):
                                 viewX + viewWidth*0.74 + (viewHeight*0.19) - 15,
                                 viewY + viewHeight*0.46 + 15,
                                 fill="black",width=8)
-            
-        
 
 #TODO: When distance of a layer changes, update layer list.
 # self.app.layers = sorted(self.app.layers, key=lambda l: l.layerName)
