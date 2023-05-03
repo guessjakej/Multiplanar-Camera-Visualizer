@@ -1,5 +1,5 @@
 from cmu_112_graphics import *
-import ui
+import editor_ui
 import layer
 import view
 
@@ -31,7 +31,7 @@ def appStarted(app):
     
 
     # Display
-    app.editorUI = ui.EditorUI(app)
+    app.editorUI = editor_ui.EditorUI(app)
     app.view = view.View(app)
 
 #################################################

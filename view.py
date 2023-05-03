@@ -28,8 +28,9 @@ class View(object):
                                 fill=self.bgColor,width=0)
 
         # Draw each layer
-        for layer in self.app.layers[::-1]: # Draw furthest back first
-            layer.drawLayer(canvas)
+        for layer in self.app.layers:
+            if layer.isVisible:
+                layer.drawLayer(canvas)
 
         # Background of UI (with hole in middle for view)
         canvas.create_rectangle(0, 0, self.app.width, y,
