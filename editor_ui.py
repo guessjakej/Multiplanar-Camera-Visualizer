@@ -264,14 +264,14 @@ class EditorUI(object):
             startY += 60
 
     def addLayer(self):
-        maxLayerDist = 0
+        minDist = float("inf")
         for lyr in self.app.layers:
-            maxLayerDist = max(maxLayerDist, lyr.dist)
+            minDist = min(minDist, lyr.dist)
         newLayer = layer.Layer(self.app, 
                                layerName=f"Layer {len(self.app.layers)+1}",
-                               dist=maxLayerDist+10,
+                               dist=minDist-10,
                                isVisible=True)
-        self.app.layers = [newLayer] + self.app.layers
+        self.app.layers = self.app.layers + [newLayer]
 
     def draw(self, canvas):
         # Main sections
@@ -600,7 +600,7 @@ class EditorUI(object):
         height = self.app.height
 
         # Draw magnifying glass
-        x, y = width * 0.6, height * 0.1
+        x, y = width * 0.1, height * 0.1
         canvas.create_line(x,y,x+50,y-50,
                            fill="black",width=8)
         cX, cY = x+50, y-50
@@ -610,9 +610,14 @@ class EditorUI(object):
         
         # Draw Zoom
         textX, textY = x+100, y+20
+        viewX, viewY = self.app.view.viewPos
+        viewX = viewX//100*100
+        viewY = viewY//100*100
+        cameraDepth = self.app.view.cameraDepth//5*5
+        text=f"({viewX},{viewY}) | {cameraDepth}"
         canvas.create_text(textX,textY,anchor="sw",font="Helvetica 50 bold",
                            fill="#c0c0c0",
-                           text=f"{round(self.app.view.cameraDepth//5*5)}",
+                           text=text,
                            )
         
     def drawLayerHeader(self, canvas):
