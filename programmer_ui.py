@@ -29,12 +29,11 @@ class ProgrammerUI(object):
         # Dictionary mapping layer numbers to program strings
         self.layerPrograms = dict()
 
-        # Dictionary mapping layer numbers to cursor positions in layer prog
-        self.layerCursors = dict()
-
     def updateMousePressed(self, mouseX, mouseY):
-        if self.isEditorHover:
+        if (self.isEditorHover):
             self.app.mode = "editor"
+        elif (self.isPlaybackHover):
+            self.app.mode = "playback"
         else:
             self.updateSelectedLayer(mouseX, mouseY)
             
@@ -94,7 +93,7 @@ class ProgrammerUI(object):
             if (layerProgram != "" and layerProgram[-1].isdigit()):
                 layerProgram += "|"
                 self.layerPrograms[self.app.selectedLayer] = layerProgram
-        elif (key == "," or key.isdigit()):
+        elif (key in [",", "-"] or key.isdigit()):
             layerProgram = self.layerPrograms.get(self.app.selectedLayer, "")
             layerProgram += key
             self.layerPrograms[self.app.selectedLayer] = layerProgram

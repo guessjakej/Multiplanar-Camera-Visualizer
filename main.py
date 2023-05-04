@@ -3,13 +3,14 @@ import editor_ui
 import programmer_ui
 import layer
 import view
+import playback
 
 #################################################
 # App
 #################################################
 
 def appStarted(app):
-    app.timerDelay = 1000//60
+    app.timerDelay = 1000//120
     app.mouseMovedDelay = 1000//100
     app.mode = "editor"
 
@@ -32,6 +33,10 @@ def appStarted(app):
     app.editorUI = editor_ui.EditorUI(app)
     app.view = view.View(app)
     app.programmerUI = programmer_ui.ProgrammerUI(app)
+
+    # Playback
+    app.playback = playback.Playback(app)
+    app.playback.playbackInitialized = False
 
 #################################################
 # Editor
@@ -163,6 +168,32 @@ def programmer_mouseMoved(app, event):
 
 def programmer_keyPressed(app, event):
     app.programmerUI.updateKeyPressed(event.key)
+
+#################################################
+# Playback
+#################################################
+
+def playback_redrawAll(app, canvas):
+    if (not app.playback.playbackInitialized):
+        return
+    
+    app.playback.draw(canvas)
+
+def playback_timerFired(app):
+    if (not app.playback.playbackInitialized):
+        app.playback.initialize()
+    else:
+        app.playback.update()
+
+def playback_keyPressed(app, event):
+    app.playback.playbackInitialized = False
+    app.playback.resetLayers()
+    app.mode = "programmer"
+
+def playback_mousePressed(app, event):
+    app.playback.playbackInitialized = False
+    app.playback.resetLayers()
+    app.mode = "programmer"
 
 #################################################
 # Helper Functions

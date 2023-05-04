@@ -83,6 +83,8 @@ class EditorUI(object):
         elif (self.isProgrammerHover):
             self.app.selectedLayer = len(self.app.layers)
             self.app.mode = "programmer"
+        elif (self.isPlaybackHover):
+            self.app.mode = "playback"
         else:
             self.drawingShape = False
             self.updateSelectedLayer(mouseX, mouseY)

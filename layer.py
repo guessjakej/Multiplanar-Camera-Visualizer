@@ -10,6 +10,8 @@ class Layer(object):
         self.layerName = layerName
         self.layerPos = (0, 0)
         self.dist = dist
+        self.posOriginal = self.layerPos
+        self.distOriginal = self.dist
         self.isVisible = isVisible
         self.visMouseHover = False
         self.shapes = [Shape("Square", [(-400, 400), (-200, 200)], "red", True),
@@ -19,7 +21,11 @@ class Layer(object):
 
     def drawLayer(self, canvas):
         for shape in self.shapes:
-            shape.drawShape(self.app, canvas, self.layerPos, self.dist)
+            shape.drawShape(self.app, canvas, self.layerPos, self.dist, False)
+
+    def drawLayerPayback(self, canvas):
+        for shape in self.shapes:
+            shape.drawShape(self.app, canvas, self.layerPos, self.dist, True)
 
 class Shape(object):
     def __init__(self, type, vertices, fillColor, showOutline):
@@ -28,7 +34,7 @@ class Shape(object):
         self.fillColor = fillColor
         self.showOutline = showOutline
 
-    def drawShape(self, app, canvas, layerPos, dist):
+    def drawShape(self, app, canvas, layerPos, dist, isPlayback):
         layerX, layerY = layerPos
         newVertices = []
         
@@ -38,8 +44,13 @@ class Shape(object):
             return
         
         for (x, y) in self.vertices:
-            newX, newY = app.view.layerPosToCanvas(x+layerX, y+layerY, 
-                                                   adjustedDist)
+            newX, newY = 0, 0
+            if (isPlayback):
+                newX, newY = app.view.layerPosToView(x+layerX, y+layerY, 
+                                                    adjustedDist)
+            else:
+                newX, newY = app.view.layerPosToCanvas(x+layerX, y+layerY, 
+                                                    adjustedDist)
             newVertices.append((newX, newY))
         
         width = 80/adjustedDist if self.showOutline else 0
