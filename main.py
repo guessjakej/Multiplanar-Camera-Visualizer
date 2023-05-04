@@ -22,9 +22,9 @@ def appStarted(app):
     app.drawOutline = True
 
     # List containing Layer objects
-    app.layers = [layer.Layer(app, "Layer 3", dist=50, isVisible=True),
-                  layer.Layer(app, "Layer 2", dist=30, isVisible=True),
-                  layer.Layer(app, "Layer 1", dist=10, isVisible=True)]
+    app.layers = [layer.Layer(app, "Layer 3", dist=60, isVisible=True),
+                  layer.Layer(app, "Layer 2", dist=40, isVisible=True),
+                  layer.Layer(app, "Layer 1", dist=20, isVisible=True)]
     app.selectedLayer = 0
     app.undoHistory = dict()
     
@@ -184,6 +184,7 @@ def playback_timerFired(app):
         app.playback.initialize()
     else:
         app.playback.update()
+        sortLayers(app)
 
 def playback_keyPressed(app, event):
     app.playback.playbackInitialized = False
