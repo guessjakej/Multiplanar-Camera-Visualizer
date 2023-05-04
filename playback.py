@@ -88,9 +88,12 @@ class Playback(object):
             layer.layerPos = (newX, newY)
             layer.dist = newDist
 
-            self.timeStamp = (self.timeStamp + 1) % self.totalTime
+            self.timeStamp = min((self.timeStamp + 1), self.totalTime-1)
     
     def draw(self, canvas):
+        # Draw background
+        canvas.create_rectangle(0,0,self.app.width,self.app.height,
+                                fill=self.app.view.bgColor, width=0)
         # Draw each layer
         for layer in self.app.layers:
             layer.drawLayerPayback(canvas)
