@@ -1,5 +1,6 @@
 from cmu_112_graphics import *
 import editor_ui
+import programmer_ui
 import layer
 import view
 
@@ -11,9 +12,6 @@ def appStarted(app):
     app.timerDelay = 1000//60
     app.mouseMovedDelay = 1000//100
     app.mode = "editor"
-
-    # Current magnification of view
-    app.zoom = 1
 
     # Controls
     app.heldKeys = set()
@@ -33,6 +31,7 @@ def appStarted(app):
     # Display
     app.editorUI = editor_ui.EditorUI(app)
     app.view = view.View(app)
+    app.programmerUI = programmer_ui.ProgrammerUI(app)
 
 #################################################
 # Editor
@@ -149,9 +148,21 @@ def editor_timerFired(app):
                 app.layers[app.selectedLayer-1].dist += depth
                 sortLayers(app)
 
+#################################################
+# Programmer
+#################################################
 
+def programmer_redrawAll(app, canvas):
+    app.programmerUI.draw(canvas)
 
+def programmer_mousePressed(app, event):
+    app.programmerUI.updateMousePressed(event.x, event.y)
 
+def programmer_mouseMoved(app, event):
+    app.programmerUI.updateMouseMoved(event.x, event.y)
+
+def programmer_keyPressed(app, event):
+    app.programmerUI.updateKeyPressed(event.key)
 
 #################################################
 # Helper Functions
